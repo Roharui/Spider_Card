@@ -12,6 +12,8 @@ class Make:
         self.epoc = 0
 
     def elseDeck(self, num):
+        if num == -1:
+            return self.deck
         if num == 0:
             return self.deck[1:]
         elif num == 9:
@@ -19,7 +21,55 @@ class Make:
         else:
             return self.deck[:num] + self.deck[num+1:]
 
+    def move_1_1(self, i, flist):
+        for j in flist:
+            if j[-1].canAddDeck(i[-1]):
+                j[-1].addDeck(i.pop())
+                print('{0} -> {1}'.format(self.deck.index(i) + 1, self.deck.index(j) + 1))
+                return True
+        return False
+
+    def move_1_2(self, i, emlist):
+        for j in emlist:
+            if self.hidden[self.deck.index(j)] == 0 and self.hidden[self.deck.index(i)] != 0:
+                j.append(i.pop())
+                print('{0} -> {1}'.format(self.deck.index(i) + 1, self.deck.index(j) + 1))
+                return True
+        return False
+
+    def checkEmpty(self, num):
+        flist = []
+        emlist = []
+        for j in self.elseDeck(num):
+            if len(j) == 0:
+                emlist.append(j)
+            else:
+                flist.append(j)
+        return (flist, emlist)
+
     def move_1(self, i, num):
+        flist, emlist = self.checkEmpty(num)
+        result = False
+        while True:
+            if len(i) == 0:
+                if self.refresh(num, i):
+                    result = True
+                    continue
+            elif self.king(i, num):
+                flist, emlist = self.checkEmpty(num)
+                result = True
+                return True
+            elif self.move_1_1(i, flist):
+                flist, emlist = self.checkEmpty(num)
+                result = True
+                continue
+            elif self.move_1_2(i, emlist):
+                flist, emlist = self.checkEmpty(num)
+                result = True
+                continue
+            return result
+
+        '''
         result = False
         moved = True
         while moved:
@@ -53,46 +103,46 @@ class Make:
                 else:
                     continue
         return result
-
+        '''
+    '''
     def move_2(self, i, num):
-        for j in self.elseDeck(num):
-            if len(j) > 1 and self.hidden[num] == 0:
+        flist, emlist = self.checkEmpty(num)
+        for j in flist:
+            if len(j) > 1:
                 self.showLine(j)
                 i.append(j.pop())
                 self.showLine(i)
                 return True
-        for j in self.elseDeck(num):
+        for j in flist:
             if self.hidden[self.deck.index(j)] > 0:
                 self.showLine(j)
                 i.append(j.pop())
                 self.showLine(i)
                 return True
         return False
+    '''
 
     def king(self, i, num):
-        for j in self.elseDeck(num):
-            if len(j) == 0: continue
+        if i[-1].firstCard() != 0:
+            return False
+        for j in self.checkEmpty(num)[0]:
             __ = j[-1]
             _ = i[-1]
             if __.lastCard() == 12 and __.firstCard() <= _.lastCard():
-                self.showLine(j)
                 tmp = __.divide(12 - _.lastCard())
                 _.addDeck(tmp)
-                self.showLine(i)
+                print('{0} -> {1} - King'.format(self.deck.index(j) + 1, num + 1))
                 return True
         return False
 
     def move(self):
-        print('=============={0}'.format(self.epoc))
+        result = False
+        #print('=============={0}'.format(self.epoc))
         self.show()
+        print()
         result = False
         for num, i in enumerate(self.deck):
-            if len(i) > 0:
-                if i[-1].firstCard() == 0:
-                    result = result or self.king(i, num)
-                result = result or self.move_1(i, num)
-            if len(i) == 0:
-                result = result or self.move_2(i, num)   
+            result = result or self.move_1(i, num)
             self.clean()
         self.epoc += 1
         return result
@@ -129,38 +179,31 @@ class Make:
         '''
 
     def clean(self):
-        for num, i in enumerate(self.deck):
-            if len(i) == 0:
-                if  self.hidden[num] > 0:
-                    self.refresh(num, i)
-            elif i[-1].firstCard() == 0 and i[-1].lastCard() == 12: 
+        for i in self.checkEmpty(-1)[0]:
+            if i[-1].firstCard() == 0 and i[-1].lastCard() == 12: 
                 i.pop()
-                self.showLine(i)
-            else: pass
 
     def refresh(self, num, i):
-        self.show()
+        if self.hidden[num] == 0:
+            return False
         self.hidden[num] -= 1
         print('{0}번째 카드 번호를 입력해 주세요'.format(num + 1))
         i.append(tmpFuc_input())
+        return True
 
     def tolab(self):
-        aaa = []
-        bbb = []
-        for i in self.deck:
-            if len(i) == 0:
-                aaa.append(i)
-            elif len(i[-1].cards) != 1:
-                bbb.append(i[-1])
-        if len(aaa) == 0: return False
-        for i in bbb:
-            for j in aaa:
-                j.append(i.divide(1))
-                aaa.remove(j)
-                if len(i.cards) == 1:
+        flist, emlist = self.checkEmpty(-1)
+        if len(emlist) == 0:
+            return False
+        for i in flist:
+            for j in emlist:
+                j.append(i[-1].divide(1))
+                flist, emlist = self.checkEmpty(-1)
+                if len(i[-1].cards) == 1:
                     break
-        if len(aaa) > 0:
+        if len(emlist) > 0:
             return True
+        return False
                 
     def lab(self):
         if self.count == 5 or self.tolab():
@@ -197,7 +240,7 @@ class Make:
         print(self.hidden)
 
 if __name__ == '__main__':
-    data = [['5'],['q'],['q'],['6'],['a'],['5'],['k'],['6'],['4'],['q']]
+    data = [['a'],['7'],['j'],['10'],['a'],['k'],['j'],['8'],['q'],['q']]
     #hidden = [4, 5, 5, 4, 4, 3, 3, 4, 4, 2]
     a = Make(data)
     while sum(a.hidden) != 0:
