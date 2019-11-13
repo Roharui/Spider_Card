@@ -243,8 +243,12 @@ if __name__ == '__main__':
     data = [['a'],['7'],['j'],['10'],['a'],['k'],['j'],['8'],['q'],['q']]
     #hidden = [4, 5, 5, 4, 4, 3, 3, 4, 4, 2]
     a = Make(data)
+    print(sum(a.hidden))
+    '''
+    a = Make(data)
     while sum(a.hidden) != 0:
         while a.move():
             pass
         #a.final()
         a.lab()
+    '''

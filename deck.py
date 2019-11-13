@@ -1,4 +1,6 @@
 
+from random import shuffle
+
 c_order = {'k' : 0,'q' : 1,'j' : 2,'10' : 3,'9' : 4,'8' : 5,'7' : 6,
 '6' : 7,'5' : 8,'4' : 9,'3' : 10,'2' : 11,'a' : 12}
 
@@ -45,9 +47,6 @@ class Deck:
         result.cards = a
         return result
 
-    
-    
-
 def makeDeck(decks):
     result = []
     _ = Deck()
@@ -69,8 +68,15 @@ def tmpFuc_input():
             _.cards = [a]
             return _
 
+def deckList():
+    _ = list(c_order.keys()) * 8
+    shuffle(_)
+    return _
+
 if __name__ == '__main__':
+    '''
     a = ['10', '9', '7']
     b = makeDeck(a)
     for i in b:
         print(repr(i), end=' ')
+    '''
